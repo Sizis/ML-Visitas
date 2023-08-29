@@ -27,14 +27,14 @@ def update_table():
     conn = sqlite3.connect(db_path)
 
     # leer del csv
-    df_csv = pd.read_csv(csv_path, parse_dates=['Date'])
-    # leer de la db
+    df_csv = pd.read_csv(csv_path)
+    df_csv['Date'] = pd.to_datetime(df_csv['Date'], dayfirst=True)
+    # leer de la db (TODO funcion a parte)
     df_sql = pd.read_sql("SELECT * from visit_quant", conn)
 
     # quitar duplicados antes de insertar
     df_new = pd.merge(df_sql, df_csv, indicator=True, how='outer')
     df_new = df_new[df_new['_merge'] == 'right_only'].drop('_merge', axis=1)
-    df_new.count()
     
     # añadir nuevas filas a la db
     df_new.to_sql('visit_quant', conn, if_exists='append', index=False)
